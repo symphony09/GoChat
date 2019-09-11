@@ -31,7 +31,7 @@
 		};
 
 		function send() {
-			sock.send(document.getElementById("message").value);
+			sock.send(JSON.stringify({MType:0,content:document.getElementById("message").value}));
 		};
 	</script>
 	<h1>WebSocket Echo Test</h1>

@@ -102,20 +102,25 @@ func (c *Client) Read() {
 		c.Socket.Close()
 	}()
 
+	var received Message
+	sMap := tool.GetMap()
 	for {
-		_, message, err := c.Socket.ReadMessage()
+		err := c.Socket.ReadJSON(&received)
 		if err != nil {
 			Manager.Unregister <- c
 			c.Socket.Close()
 			break
 		}
-		sMap := tool.GetMap()
-		if _, ok := sMap.CheckSensitive(string(message)); ok {
-			jsonMessage, _ := json.Marshal(&Message{Content: "含有敏感词!"})
-			c.Send <- jsonMessage
-			continue
+		received.Sender = c.ID
+		fmt.Println(received)
+		if received.MType == txt {
+			if _, ok := sMap.CheckSensitive(received.Content); ok {
+				jsonMessage, _ := json.Marshal(&Message{MType: txt, Sender: "system", Content: "含有敏感词!"})
+				c.Send <- jsonMessage
+				continue
+			}
 		}
-		jsonMessage, _ := json.Marshal(&Message{Sender: c.ID, Content: string(message)})
+		jsonMessage, _ := json.Marshal(received)
 		for conn := range Channel[c.Subscription] {
 			conn.Send <- jsonMessage
 		}
