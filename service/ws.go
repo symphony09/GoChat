@@ -107,12 +107,13 @@ func (c *Client) Read() {
 	for {
 		err := c.Socket.ReadJSON(&received)
 		if err != nil {
+			fmt.Println(err)
 			Manager.Unregister <- c
 			c.Socket.Close()
 			break
 		}
 		received.Sender = c.ID
-		fmt.Println(received)
+		fmt.Println(received.MType, received.Sender)
 		if received.MType == txt {
 			if _, ok := sMap.CheckSensitive(received.Content); ok {
 				jsonMessage, _ := json.Marshal(&Message{MType: txt, Sender: "system", Content: "含有敏感词!"})

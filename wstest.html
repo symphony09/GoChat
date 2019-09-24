@@ -1,45 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Document</title>
 </head>
+
 <body>
 	<script type="text/javascript">
 		var sock = null;
 		var wsuri = "ws://127.0.0.1:8080/wsgo";
 
-		window.onload = function() {
+		window.onload = function () {
 
 			console.log("onload");
 
 			sock = new WebSocket(wsuri);
 
-			sock.onopen = function() {
+			sock.onopen = function () {
 				console.log("connected to " + wsuri);
 			}
 
-			sock.onclose = function(e) {
+			sock.onclose = function (e) {
 				console.log("connection closed (" + e.code + ")");
 			}
 
-			sock.onmessage = function(e) {
-				console.log("message received: " + e.data);
+			sock.onmessage = function (e) {
+				let msg = JSON.parse(e.data)
+				if (msg.MType === 2) {
+					// const blob = new Blob([msg.content], { type: 'image/png' });
+					// console.log(blob)
+					// var r = new FileReader();  //本地预览  
+					// r.onload = function () {
+					var img = $("#yulan");
+					img.attr("src", msg.Content)
+					// 	//console.log(r.result)
+					// }
+					// r.readAsDataURL(blob);
+				} else {
+					console.log("message received: " + e.data);
+				}
 			}
 		};
 
 		function send() {
-			sock.send(JSON.stringify({MType:0,content:document.getElementById("message").value}));
+			sock.send(JSON.stringify({ MType: 0, content: document.getElementById("message").value }));
 		};
 	</script>
+
+	<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+	<script>
+		function handleFile(e) {
+			var file = e.files[0];
+			// console.log(file)
+			var r = new FileReader();  //本地预览  
+			r.onload = function () {
+				// var img = $("#yulan");
+				// img.attr("src", r.result)
+				//console.log(r.result)
+				sock.send(JSON.stringify({ MType: 2, content: r.result }));
+			}
+			r.readAsDataURL(file);    //此处的file可以是file也可以是blog对象 
+		}
+	</script>
+
+
 	<h1>WebSocket Echo Test</h1>
 	<form>
 		<p>
-			Message: <input id="message" type="text" value="Hello, world!">
+			Message: <input id="message" type="text" value="Hello, world!"><br>
+			<input type="file" accept="image/*" onchange="handleFile(this)" />
 		</p>
 	</form>
 	<button onclick="send();">Send Message</button>
+	<img style="width:200px;height:200px;" id="yulan">
 </body>
+
 </html>
